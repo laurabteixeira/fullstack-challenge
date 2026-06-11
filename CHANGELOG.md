@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Idempotência persistente via `idempotency_key` único em `wallet_transactions`
 - Testes unitários de domínio/use cases e E2E wallets com Keycloak
 
+### Fixed — `feat/wallet-service` (2026-06-11)
+
+- Imports relativos em `WalletModule` corrigidos para o serviço NestJS subir
+- Injeção duplicada de `MessagePublisher` removida em `DebitBetUseCase`
+- `MessagePublisher` registrado no módulo de mensageria; healthcheck wallets com `start_period` estendido
+
 ### Added — `feat/sqs-localstack` (2026-06-11)
 
 - LocalStack SQS substitui RabbitMQ no `docker-compose.yml`
