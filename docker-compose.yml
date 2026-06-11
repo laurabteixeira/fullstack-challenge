@@ -21,23 +21,30 @@ services:
       retries: 10
 
   # ---------------------------------------------------------------------------
-  # RabbitMQ (with management UI)
+  # LocalStack (AWS SQS)
   # ---------------------------------------------------------------------------
-  rabbitmq:
-    image: rabbitmq:4.2.4-management-alpine
+  localstack:
+    image: localstack/localstack:4.4.0
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "4566:4566"
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      SERVICES: sqs
+      AWS_DEFAULT_REGION: us-east-1
+      DEBUG: "0"
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - localstack_data:/var/lib/localstack
+      - ./docker/localstack/init-sqs.sh:/etc/localstack/init/ready.d/init-sqs.sh:ro
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      test:
+        - CMD-SHELL
+        - >-
+          curl -sf http://localhost:4566/_localstack/init/ready
+          | grep -q '"completed": true'
+          && awslocal sqs get-queue-url --queue-name crash-bet-debit-requested >/dev/null
+      interval: 5s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
 
   # ---------------------------------------------------------------------------
   # Keycloak (Identity Provider)
@@ -87,7 +94,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
+      localstack:
         condition: service_healthy
 
   # ---------------------------------------------------------------------------
@@ -95,16 +102,21 @@ services:
   # ---------------------------------------------------------------------------
   games:
     build:
-      context: ./services/games
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/games/Dockerfile
     ports:
       - "4001:4001"
-    env_file:
-      - ./services/games/.env
+    environment:
+      PORT: "4001"
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/games
+      AWS_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
+      localstack:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:4001/health || exit 1"]
@@ -118,16 +130,21 @@ services:
   # ---------------------------------------------------------------------------
   wallets:
     build:
-      context: ./services/wallets
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/wallets/Dockerfile
     ports:
       - "4002:4002"
-    env_file:
-      - ./services/wallets/.env
+    environment:
+      PORT: "4002"
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/wallets
+      AWS_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
+      localstack:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:4002/health || exit 1"]
@@ -150,4 +167,4 @@ services:
 
 volumes:
   postgres_data:
-  rabbitmq_data:
+  localstack_data:

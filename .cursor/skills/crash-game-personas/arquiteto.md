@@ -13,7 +13,7 @@
 Frontend :3000 ──HTTP/WS──► Kong :8000
                               ├── Game :4001 (PostgreSQL games)
                               └── Wallet :4002 (PostgreSQL wallets)
-                                        └── RabbitMQ ◄──► entre serviços
+                                        └── SQS LocalStack ◄──► entre serviços
 Keycloak :8080 (JWT)
 ```
 

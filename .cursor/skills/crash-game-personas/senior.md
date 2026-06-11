@@ -24,7 +24,7 @@ Se escopo incluir UI: rule `frontend-ux`.
 domain (agregados, VOs, invariantes)
   → application (use cases, handlers de eventos)
     → domain/repositories (contratos)
-      → infrastructure (ORM, RabbitMQ consumers/publishers)
+      → infrastructure (ORM, SQS consumers/publishers)
         → presentation (controllers, DTOs, WS gateway)
           → testes unitários (fakes)
             → E2E se cross-service
@@ -84,7 +84,7 @@ Endpoints `Auth: Sim` do README:
 
 ## Testes unitários
 
-- Fakes in-memory em `tests/unit/` — sem PostgreSQL/RabbitMQ real
+- Fakes in-memory em `tests/unit/` — sem PostgreSQL/SQS real
 - Cobrir: sucesso, erro, invariantes, bordas (saldo zero, aposta dupla)
 - Substituir `smoke.spec.ts` por testes reais ao implementar domínio
 
