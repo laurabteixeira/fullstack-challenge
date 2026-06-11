@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { DOMAIN_EVENTS, type MessagePublisher } from "@crash/messaging";
+import { DuplicateIdempotencyKeyError } from "../../domain/errors/duplicate-idempotency-key.error";
 import { InsufficientBalanceError } from "../../domain/errors/insufficient-balance.error";
 import { centsFromNumber } from "../../domain/money";
 import {
@@ -25,11 +26,7 @@ export class DebitBetUseCase {
 
   async execute(input: DebitBetInput): Promise<void> {
     if (await this.walletRepository.findProcessedIdempotencyKey(input.idempotencyKey)) {
-      await this.publisher.publish(
-        DOMAIN_EVENTS.BET_DEBITED,
-        input.idempotencyKey,
-        { betId: input.betId, idempotencyKey: input.idempotencyKey },
-      );
+      await this.publishBetDebited(input);
       return;
     }
 
@@ -51,13 +48,25 @@ export class DebitBetUseCase {
       throw error;
     }
 
-    await this.walletRepository.saveDebit({
-      wallet,
-      amountCents,
-      idempotencyKey: input.idempotencyKey,
-      referenceId: input.betId,
-    });
+    try {
+      await this.walletRepository.saveDebit({
+        wallet,
+        amountCents,
+        idempotencyKey: input.idempotencyKey,
+        referenceId: input.betId,
+      });
+    } catch (error) {
+      if (error instanceof DuplicateIdempotencyKeyError) {
+        await this.publishBetDebited(input);
+        return;
+      }
+      throw error;
+    }
 
+    await this.publishBetDebited(input);
+  }
+
+  private async publishBetDebited(input: DebitBetInput): Promise<void> {
     await this.publisher.publish(
       DOMAIN_EVENTS.BET_DEBITED,
       input.idempotencyKey,

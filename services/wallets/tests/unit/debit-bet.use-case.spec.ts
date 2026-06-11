@@ -1,9 +1,20 @@
 import { describe, expect, test } from "bun:test";
 import { DOMAIN_EVENTS } from "@crash/messaging";
 import { DebitBetUseCase } from "../../src/application/use-cases/debit-bet.use-case";
+import { DuplicateIdempotencyKeyError } from "../../src/domain/errors/duplicate-idempotency-key.error";
 import { Wallet } from "../../src/domain/wallet/wallet.entity";
 import { FakeMessagePublisher } from "./fakes/fake-message-publisher";
 import { InMemoryWalletRepository } from "./fakes/in-memory-wallet.repository";
+
+class RaceSimulatingWalletRepository extends InMemoryWalletRepository {
+  override async findProcessedIdempotencyKey(): Promise<boolean> {
+    return false;
+  }
+
+  override async saveDebit(): Promise<void> {
+    throw new DuplicateIdempotencyKeyError();
+  }
+}
 
 describe("DebitBetUseCase", () => {
   test("debits wallet and publishes bet.debited", async () => {
@@ -90,5 +101,24 @@ describe("DebitBetUseCase", () => {
 
     expect(publisher.published).toHaveLength(2);
     expect(publisher.published[1]?.eventType).toBe(DOMAIN_EVENTS.BET_DEBITED);
+  });
+
+  test("republishes bet.debited when saveDebit hits duplicate idempotency key", async () => {
+    const repository = new RaceSimulatingWalletRepository();
+    const publisher = new FakeMessagePublisher();
+    const useCase = new DebitBetUseCase(repository, publisher);
+
+    const wallet = Wallet.create("w1", "player-1", 1000n);
+    await repository.save(wallet);
+
+    await useCase.execute({
+      betId: "bet-race",
+      playerId: "player-1",
+      amount: 100,
+      idempotencyKey: "idem-race",
+    });
+
+    expect(publisher.published).toHaveLength(1);
+    expect(publisher.published[0]?.eventType).toBe(DOMAIN_EVENTS.BET_DEBITED);
   });
 });

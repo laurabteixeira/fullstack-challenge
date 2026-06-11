@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Imports relativos em `WalletModule` corrigidos para o serviço NestJS subir
 - Injeção duplicada de `MessagePublisher` removida em `DebitBetUseCase`
 - `MessagePublisher` registrado no módulo de mensageria; healthcheck wallets com `start_period` estendido
+- Race de idempotência: conflito P2002 em `saveDebit` republica `bet.debited` sem inconsistência de saldo
+- `POST /wallets` retorna HTTP 201 explicitamente via `@HttpCode(201)`
 
 ### Added — `feat/sqs-localstack` (2026-06-11)
 

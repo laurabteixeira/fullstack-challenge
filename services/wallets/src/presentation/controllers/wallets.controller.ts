@@ -2,6 +2,7 @@ import {
   ConflictException,
   Controller,
   Get,
+  HttpCode,
   NotFoundException,
   Post,
   Res,
@@ -39,6 +40,7 @@ export class WalletsController {
   }
 
   @Post()
+  @HttpCode(201)
   @UseGuards(JwtAuthGuard)
   async create(@CurrentPlayer() playerId: string): Promise<WalletResponseDto> {
     try {

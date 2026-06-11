@@ -1,10 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "./prisma.service";
+import { Prisma } from "@prisma/client";
+import { DuplicateIdempotencyKeyError } from "../../domain/errors/duplicate-idempotency-key.error";
 import { Wallet } from "../../domain/wallet/wallet.entity";
 import {
   type DebitTransactionInput,
   type WalletRepository,
 } from "../../domain/wallet/wallet.repository";
+import { PrismaService } from "./prisma.service";
 
 @Injectable()
 export class PrismaWalletRepository implements WalletRepository {
@@ -51,21 +53,31 @@ export class PrismaWalletRepository implements WalletRepository {
   }
 
   async saveDebit(input: DebitTransactionInput): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      await tx.wallet.update({
-        where: { id: input.wallet.id },
-        data: { balanceCents: input.wallet.balanceCents },
-      });
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.wallet.update({
+          where: { id: input.wallet.id },
+          data: { balanceCents: input.wallet.balanceCents },
+        });
 
-      await tx.walletTransaction.create({
-        data: {
-          walletId: input.wallet.id,
-          type: "DEBIT",
-          amountCents: input.amountCents,
-          idempotencyKey: input.idempotencyKey,
-          referenceId: input.referenceId,
-        },
+        await tx.walletTransaction.create({
+          data: {
+            walletId: input.wallet.id,
+            type: "DEBIT",
+            amountCents: input.amountCents,
+            idempotencyKey: input.idempotencyKey,
+            referenceId: input.referenceId,
+          },
+        });
       });
-    });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new DuplicateIdempotencyKeyError();
+      }
+      throw error;
+    }
   }
 }
