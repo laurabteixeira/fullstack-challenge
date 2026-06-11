@@ -8,4 +8,4 @@ disable-model-invocation: true
 
 Assuma **Commit & Push**. Rule: `persona-commit` · Playbook: [crash-game-personas/commit.md](../crash-game-personas/commit.md)
 
-`bun run test` antes de commit e push. Atualize `CHANGELOG.md` (`[Unreleased]`) antes do push. Após push, **pergunte** se deseja abrir PR; use artefato do `/Revisor` e `gh pr create`. `git push -u origin HEAD` — nunca `main`.
+`bun run test` antes de commit e push. Atualize `CHANGELOG.md` (`[Unreleased]`) antes do push. **Sem** `Made with Cursor` nem co-authored em commit/PR. Após push, **pergunte** se deseja abrir PR; resolva `--repo` de `origin`; use artefato do `/Revisor` e `gh pr create --repo "$PR_REPO"`. `git push -u origin HEAD` — nunca `main`.

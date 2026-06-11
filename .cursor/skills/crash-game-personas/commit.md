@@ -86,10 +86,39 @@ Após push bem-sucedido, **perguntar ao usuário**:
 | Branch divergente | STOP — inconsistência de handoff |
 | `gh` ausente/não autenticado | STOP — instruções de instalação/login |
 
+### Resolver repositório do PR (`--repo` obrigatório)
+
+O push vai para `origin` (`git push -u origin HEAD`), mas o `gh` **sem `--repo`** pode apontar para outro remote (ex.: `upstream`/repo pai) e falhar com *"No commits between main and …"*.
+
+**Sempre** derivar o repo do remote usado no push — nunca confiar no default do `gh`:
+
+```bash
+PR_REPO=$(
+  git remote get-url origin \
+    | sed -E 's#(git@github.com:|https://github.com/)([^/]+)/([^/.]+)(\.git)?$#\2/\3#'
+)
+# ex.: laurabteixeira/fullstack-challenge
+```
+
+Validar antes do `gh pr create`:
+
+```bash
+gh repo view "$PR_REPO" --json nameWithOwner -q .nameWithOwner
+git log "origin/main..HEAD" --oneline   # deve listar commits da branch
+```
+
+| Falha | Ação |
+|-------|------|
+| `PR_REPO` vazio ou URL não-GitHub | STOP — conferir `git remote get-url origin` |
+| `git log origin/main..HEAD` vazio | STOP — branch não publicada ou já mergeada em `origin/main` |
+| PR para upstream com branch no fork | `--repo upstream/owner/repo --head fork-owner:branch` (caso avançado; documentar no handoff) |
+
+**Não fazer:** `gh pr create` sem `--repo "$PR_REPO"`.
+
 ### PR já existente
 
 ```bash
-gh pr view --head "$(git branch --show-current)" 2>/dev/null
+gh pr view "$(git branch --show-current)" --repo "$PR_REPO" 2>/dev/null
 ```
 
 Se existir → informar URL; não criar duplicata.
@@ -108,6 +137,8 @@ Usar a mensagem do commit como `--title`.
 
 ### Body do PR
 
+Somente as três seções abaixo — **sem footer** (`Made with Cursor`, co-authored, etc.):
+
 ```markdown
 ## Summary
 - <bullets do CHANGELOG [Unreleased] desta branch, ou commits origin/main..HEAD>
@@ -124,7 +155,12 @@ Usar a mensagem do commit como `--title`.
 ### Comando
 
 ```bash
-gh pr create --base main \
+PR_REPO=$(
+  git remote get-url origin \
+    | sed -E 's#(git@github.com:|https://github.com/)([^/]+)/([^/.]+)(\.git)?$#\2/\3#'
+)
+
+gh pr create --repo "$PR_REPO" --base main \
   --head "$(git branch --show-current)" \
   --title "<título derivado do commit>" \
   --body "$(cat <<'EOF'
@@ -142,7 +178,7 @@ EOF
 
 Se usuário responder **não** → encerrar; opcionalmente informar link manual:
 
-`https://github.com/<owner>/<repo>/pull/new/<branch>`
+`https://github.com/${PR_REPO}/pull/new/<branch>` (usar `$PR_REPO` resolvido acima)
 
 ---
 
@@ -158,7 +194,7 @@ Se usuário responder **não** → encerrar; opcionalmente informar link manual:
 8. Confirmar push
 9. `git push -u origin HEAD`
 10. **Perguntar:** deseja abrir PR para `main`?
-11. Se sim → validar artefato Revisor + `gh` → montar título/body → `gh pr create`
+11. Se sim → resolver `PR_REPO` de `origin` → validar artefato Revisor + `gh` → `gh pr create --repo "$PR_REPO"`
 12. Se não → encerrar com resumo
 
 ---
@@ -202,6 +238,34 @@ chore(cursor): add optional pr creation with revisor audit
 - Mensagens vagas: `update`, `fix`, `changes`, `wip`
 - `.cursor/reviews/*.md` (handoff efêmero — já no `.gitignore`)
 
+## Nunca incluir em commits nem PRs
+
+**Proibido** em mensagens de commit, títulos/descrições de PR e corpo do `gh pr create`:
+
+- `Made with Cursor` · `Made with [Cursor](...)`
+- `Co-authored-by: Cursor` · `Co-Authored-By: ... Cursor ...`
+- Footers, badges ou linhas de atribuição a IDE/agente/IA
+- Links de marketing do Cursor ou qualquer ferramenta no final do texto
+
+Commits e PRs devem conter **somente** conteúdo técnico (Conventional Commit + seções Summary / Revisor audit / Test plan). Se o ambiente sugerir footer automático, **remover antes** do push.
+
+### Se `Co-authored-by: Cursor` persistir após `git commit`
+
+O IDE pode injetar o trailer mesmo com `--no-verify`. Reescrever o commit com plumbing (antes do push):
+
+```bash
+git log -1 --format=%B | rg -i 'co-authored-by|made with cursor' && \
+TREE=$(git rev-parse 'HEAD^{tree}') && \
+PARENT=$(git rev-parse 'HEAD^') && \
+NEW=$(git commit-tree "$TREE" -p "$PARENT" -F - <<'EOF'
+<título e corpo limpos, sem footers>
+EOF
+) && \
+git update-ref refs/heads/$(git branch --show-current) "$NEW"
+```
+
+Validar: `git log -1 --format=%B` não deve conter `Co-authored-by` nem `Made with Cursor`. Depois `git push --force-with-lease` na feature branch.
+
 ---
 
 ## Template de resposta
@@ -227,6 +291,7 @@ chore(cursor): add optional pr creation with revisor audit
 - Push: ok
 
 ## Pull request
+- Repo: `laurabteixeira/fullstack-challenge` (de `origin`)
 - Artefato Revisor: `.cursor/reviews/feat-round-lifecycle.md` ✅ | ❌ ausente
 - Pergunta: Deseja abrir PR para `main`? → **aguardando resposta**
 
@@ -236,6 +301,7 @@ Após confirmação do usuário:
 
 ```markdown
 ## Pull request
+- Repo: `owner/repo` (`--repo` de `origin`)
 - Título: feat(games): ...
 - URL: https://github.com/.../pull/N
 - Body: Summary · Revisor audit · Test plan
