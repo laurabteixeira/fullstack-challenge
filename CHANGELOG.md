@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — `feat/wallet-service` (2026-06-11)
+
+- Domínio `Wallet` com saldo em centavos (`bigint`) e invariantes de débito/crédito
+- Prisma + PostgreSQL com migrations automáticas no Docker (`prisma migrate deploy`)
+- `POST /wallets` e `GET /wallets/me` com JWT Keycloak (`sub` → `playerId`)
+- Consumer `bet.debit_requested` publicando `bet.debited` ou `bet.debit_failed`
+- Idempotência persistente via `idempotency_key` único em `wallet_transactions`
+- Testes unitários de domínio/use cases e E2E wallets com Keycloak
+
+### Fixed — `feat/wallet-service` (2026-06-11)
+
+- Imports relativos em `WalletModule` corrigidos para o serviço NestJS subir
+- Injeção duplicada de `MessagePublisher` removida em `DebitBetUseCase`
+- `MessagePublisher` registrado no módulo de mensageria; healthcheck wallets com `start_period` estendido
+- Race de idempotência: conflito P2002 em `saveDebit` republica `bet.debited` sem inconsistência de saldo
+- `POST /wallets` retorna HTTP 201 explicitamente via `@HttpCode(201)`
+- Docker build: `bun install --ignore-scripts` evita `prisma generate` antes do schema estar no contexto
+- Healthcheck Keycloak na porta de management `9000` (`/health/ready`); Postgres usa `-d postgres`
+
 ### Added — `feat/sqs-localstack` (2026-06-11)
 
 - LocalStack SQS substitui RabbitMQ no `docker-compose.yml`

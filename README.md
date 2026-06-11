@@ -270,6 +270,10 @@ cp services/wallets/.env.example services/wallets/.env
 
 Variáveis AWS para SQS local: `AWS_REGION`, `AWS_ENDPOINT_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (ver `.env.example` de cada serviço).
 
+Wallet Service (JWT Keycloak): `KEYCLOAK_ISSUER`, `KEYCLOAK_JWKS_URI`, `WALLET_INITIAL_BALANCE_CENTS` (saldo inicial em centavos ao criar carteira — padrão dev: `100000` = R$ 1.000,00).
+
+**Usuário teste com saldo:** após `docker:up`, obtenha token do Keycloak (`player` / `player123`) e chame `POST http://localhost:8000/wallets` com Bearer token para criar a carteira com saldo inicial.
+
 ### Comandos
 
 ```bash
@@ -377,9 +381,9 @@ O workflow `.github/workflows/ci.yml` roda em todo **push** e em **pull requests
 | Job | Comando | Infra |
 | --- | --- | --- |
 | **unit** | `bun run test` | Nenhuma |
-| **e2e** | `bun run test:e2e` | `docker compose up -d --wait postgres localstack games wallets kong` |
+| **e2e** | `bun run test:e2e` | `docker compose up -d --wait postgres localstack keycloak games wallets kong` |
 
-Os jobs rodam em paralelo. O job E2E copia `services/*/.env.example` para `.env` e sobe só os serviços necessários aos testes atuais (Keycloak fica de fora até haver E2E com JWT).
+Os jobs rodam em paralelo. O job E2E sobe os serviços necessários aos testes atuais (health, messaging e wallets com JWT).
 
 ### GitHub CLI (`gh`)
 
