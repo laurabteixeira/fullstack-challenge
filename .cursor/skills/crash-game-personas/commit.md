@@ -247,7 +247,24 @@ chore(cursor): add optional pr creation with revisor audit
 - Footers, badges ou linhas de atribuição a IDE/agente/IA
 - Links de marketing do Cursor ou qualquer ferramenta no final do texto
 
-Commits e PRs devem conter **somente** conteúdo técnico (Conventional Commit + seções Summary / Revisor audit / Test plan). Se o ambiente sugerir footer automático, **remover antes** de `git commit` ou `gh pr create`.
+Commits e PRs devem conter **somente** conteúdo técnico (Conventional Commit + seções Summary / Revisor audit / Test plan). Se o ambiente sugerir footer automático, **remover antes** do push.
+
+### Se `Co-authored-by: Cursor` persistir após `git commit`
+
+O IDE pode injetar o trailer mesmo com `--no-verify`. Reescrever o commit com plumbing (antes do push):
+
+```bash
+git log -1 --format=%B | rg -i 'co-authored-by|made with cursor' && \
+TREE=$(git rev-parse 'HEAD^{tree}') && \
+PARENT=$(git rev-parse 'HEAD^') && \
+NEW=$(git commit-tree "$TREE" -p "$PARENT" -F - <<'EOF'
+<título e corpo limpos, sem footers>
+EOF
+) && \
+git update-ref refs/heads/$(git branch --show-current) "$NEW"
+```
+
+Validar: `git log -1 --format=%B` não deve conter `Co-authored-by` nem `Made with Cursor`. Depois `git push --force-with-lease` na feature branch.
 
 ---
 
