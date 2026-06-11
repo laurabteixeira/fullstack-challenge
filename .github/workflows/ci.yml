@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+      - run: bun run test
+
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Prepare service env files
+        run: |
+          cp services/games/.env.example services/games/.env
+          cp services/wallets/.env.example services/wallets/.env
+
+      - name: Start infrastructure
+        run: docker compose up -d --wait postgres rabbitmq games wallets kong
+
+      - run: bun run test:e2e
+
+      - name: Tear down infrastructure
+        if: always()
+        run: docker compose down -v

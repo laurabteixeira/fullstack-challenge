@@ -359,7 +359,24 @@ cd services/games && bun test tests/unit
 cd services/wallets && bun test tests/unit
 cd services/games && bun test tests/e2e     # requer docker:up
 cd frontend && bun test
+
+# raiz (unitários dos dois serviços)
+bun run test
+bun run test:e2e   # requer docker:up
 ```
+
+### CI (GitHub Actions)
+
+[![CI](https://github.com/laurabteixeira/fullstack-challenge/actions/workflows/ci.yml/badge.svg)](https://github.com/laurabteixeira/fullstack-challenge/actions/workflows/ci.yml)
+
+O workflow `.github/workflows/ci.yml` roda em todo **push** e em **pull requests** para `main`:
+
+| Job | Comando | Infra |
+| --- | --- | --- |
+| **unit** | `bun run test` | Nenhuma |
+| **e2e** | `bun run test:e2e` | `docker compose up -d --wait postgres rabbitmq games wallets kong` |
+
+Os jobs rodam em paralelo. O job E2E copia `services/*/.env.example` para `.env` e sobe só os serviços necessários aos testes atuais (Keycloak fica de fora até haver E2E com JWT).
 
 ---
 
