@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Race de idempotência: conflito P2002 em `saveDebit` republica `bet.debited` sem inconsistência de saldo
 - `POST /wallets` retorna HTTP 201 explicitamente via `@HttpCode(201)`
 - Docker build: `bun install --ignore-scripts` evita `prisma generate` antes do schema estar no contexto
+- Healthcheck Keycloak na porta de management `9000` (`/health/ready`); Postgres usa `-d postgres`
 
 ### Added — `feat/sqs-localstack` (2026-06-11)
 
