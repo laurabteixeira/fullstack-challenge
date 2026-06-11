@@ -374,9 +374,9 @@ O workflow `.github/workflows/ci.yml` roda em todo **push** e em **pull requests
 | Job | Comando | Infra |
 | --- | --- | --- |
 | **unit** | `bun run test` | Nenhuma |
-| **e2e** | `bun run test:e2e` | `docker compose up -d --wait` (mesmo stack local) |
+| **e2e** | `bun run test:e2e` | `docker compose up -d --wait postgres rabbitmq games wallets kong` |
 
-Os jobs rodam em paralelo. O job E2E copia `services/*/.env.example` para `.env` antes de subir o Compose.
+Os jobs rodam em paralelo. O job E2E copia `services/*/.env.example` para `.env` e sobe só os serviços necessários aos testes atuais (Keycloak fica de fora até haver E2E com JWT).
 
 ---
 

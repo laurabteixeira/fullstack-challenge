@@ -53,7 +53,7 @@ jobs:
           cp services/wallets/.env.example services/wallets/.env
 
       - name: Start infrastructure
-        run: docker compose up -d --wait
+        run: docker compose up -d --wait postgres rabbitmq games wallets kong
 
       - run: bun run test:e2e
 
