@@ -1,0 +1,50 @@
+---
+description: Travas de qualidade — testes obrigatórios antes de commit/push
+alwaysApply: true
+---
+
+# Quality Gates
+
+**Nunca commitar ou dar push sem `bun run test` passar.**
+
+---
+
+## Comando canônico (raiz)
+
+```bash
+bun run test          # unitários games + wallets
+bun run test:e2e      # E2E games — requer docker:up
+```
+
+Escopo só `.cursor/`: smoke tests nos serviços devem continuar passando.
+
+---
+
+## Por persona
+
+| Persona | Quando |
+|---------|--------|
+| `/Senior` | Antes do handoff |
+| `/Revisor` | Blocker se falhar |
+| `/Commit` | Antes de commit **e** push |
+
+---
+
+## Infra (se escopo alterar Docker)
+
+```bash
+bun run docker:up
+```
+
+---
+
+## Travas no repo
+
+| Camada | Status |
+|--------|--------|
+| Husky / CI | Bônus — não configurado |
+| `branch-workflow` | Branch ≠ main para demanda nova |
+
+## Se falhar
+
+Reportar serviço/etapa, output resumido → handoff **`/Senior`**.

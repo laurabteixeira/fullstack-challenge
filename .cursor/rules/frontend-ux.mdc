@@ -1,0 +1,81 @@
+---
+description: Frontend e UX do Crash Game — OIDC, estado, animações (persona Senior/Arquiteto)
+alwaysApply: false
+---
+
+# Frontend e UX — Crash Game
+
+> Carregada quando escopo inclui `frontend/`. Fonte: `README.md`.
+
+---
+
+## Stack esperada
+
+- Framework: Vite / Next.js / TanStack Start
+- Tailwind CSS v4 + shadcn/ui
+- TanStack Query (server state) + Zustand ou Context (client state)
+- Testes: Bun test ou Vitest
+
+---
+
+## Autenticação (OIDC)
+
+- Realm `crash-game` · client `crash-game-client` (public, PKCE S256)
+- Authorization code flow — redirect Keycloak → callback → tokens
+- Usuário teste: `player` / `player123`
+- API via Kong `http://localhost:8000` com Bearer JWT
+
+---
+
+## Páginas obrigatórias
+
+### Login
+Redirect Keycloak; tratar callback; armazenar tokens com segurança.
+
+### Jogo principal
+- Gráfico crash animado (`1.00x` → crash); seed/hash antes da rodada
+- Controles: valor com validação; Apostar (só fase apostas); Cash Out (só com aposta ativa + payout potencial)
+- Lista apostas da rodada em tempo real
+- Histórico ~20 crash points (cores por valor)
+- Saldo + username (JWT)
+
+---
+
+## UX
+
+- Dark mode — estética cassino
+- Responsivo desktop/mobile
+- Animações: curva, cashout, crash
+- Loading: skeletons/spinners
+- Erros: toasts (saldo insuficiente, rede)
+
+---
+
+## Sincronização tempo real
+
+- **REST:** apostar, cashout, saldo (`GET /wallets/me`)
+- **WebSocket:** tick, crash, apostas alheias (server → client)
+- Server é fonte de verdade do multiplicador
+- Trade-off saldo: evento `wallet.updated` via WS **ou** invalidar TanStack Query após cashout
+
+---
+
+## Estrutura sugerida
+
+```
+frontend/src/
+├── components/
+├── hooks/
+├── pages/
+├── services/    # API + WS clients
+└── stores/      # estado UI local
+```
+
+---
+
+## Critérios de revisão (15% nota)
+
+- [ ] Login OIDC funcional
+- [ ] UI reage a eventos WS
+- [ ] Estados de botão corretos por fase da rodada
+- [ ] Dark mode + responsivo + loading states

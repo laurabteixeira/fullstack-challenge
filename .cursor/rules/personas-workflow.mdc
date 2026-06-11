@@ -1,0 +1,23 @@
+---
+description: Workflow das personas — Arquiteto → Senior → Revisor → Commit
+alwaysApply: true
+---
+
+# Workflow — Personas
+
+| Comando | Persona | Playbook |
+|---------|---------|----------|
+| `/Arquiteto` | Plano + branch — não codar | `skills/crash-game-personas/arquiteto.md` |
+| `/Senior` | Implementação | `skills/crash-game-personas/senior.md` |
+| `/Revisor` | Review + testes | `skills/crash-game-personas/revisor.md` |
+| `/Commit` | Commit + push | `skills/crash-game-personas/commit.md` |
+
+```
+branch → /Arquiteto → /Senior → /Revisor → /Commit → PR
+```
+
+**Rules alwaysApply:** `branch-workflow` · `quality-gates` · `desafio-crash-game-entrega` · `crash-game-produto-e-negocio` · `infra-docker-local`
+
+**Rules on-demand:** `persona-*` · `engenheiro-fullstack-senior` (Senior) · `frontend-ux` (frontend)
+
+Índice completo: `.cursor/README.md`

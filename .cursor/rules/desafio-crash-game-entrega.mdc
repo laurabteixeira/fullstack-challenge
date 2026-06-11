@@ -1,0 +1,62 @@
+---
+description: Referência oficial do desafio Crash Game — escopo de entrega e critérios de aceite
+alwaysApply: true
+---
+
+# Desafio Crash Game — Escopo de Entrega
+
+**Fonte oficial:** `README.md` — prevalece em caso de ambiguidade.
+
+---
+
+## Requisitos eliminatórios
+
+| # | Requisito |
+|---|-----------|
+| 1 | `bun run docker:up` sem passo manual (Keycloak, Kong, migrations) |
+| 2 | Gameplay: apostar → multiplicador → cashout/crash → liquidação |
+| 3 | `services/games` + `services/wallets` via RabbitMQ/SQS |
+| 4 | Sincronização em tempo real (múltiplas abas) |
+| 5 | Precisão monetária — sem float; saldo nunca negativo |
+| 6 | JWT do IdP validado nos endpoints protegidos |
+| 7 | Testes unitários + E2E existem e passam |
+
+**Desclassificação imediata:** float para dinheiro · `docker:up` quebrado · sem testes.
+
+---
+
+## Endpoints (via Kong `http://localhost:8000`)
+
+### Wallet — `/wallets`
+
+| Método | Endpoint | Auth | Descrição |
+|--------|----------|------|-----------|
+| `POST` | `/wallets` | Sim | Cria carteira |
+| `GET` | `/wallets/me` | Sim | Carteira e saldo |
+
+Crédito/débito **somente via broker**.
+
+### Game — `/games`
+
+| Método | Endpoint | Auth | Descrição |
+|--------|----------|------|-----------|
+| `GET` | `/games/rounds/current` | Não | Rodada atual com apostas |
+| `GET` | `/games/rounds/history` | Não | Histórico paginado |
+| `GET` | `/games/rounds/:roundId/verify` | Não | Provably fair |
+| `GET` | `/games/bets/me` | Sim | Apostas do jogador |
+| `POST` | `/games/bet` | Sim | Apostar |
+| `POST` | `/games/bet/cashout` | Sim | Sacar |
+
+WebSocket: push servidor → cliente. Apostar/sacar via REST.
+
+---
+
+## Validação
+
+```bash
+bun run test          # unitários (raiz)
+bun run test:e2e      # E2E games (requer docker:up)
+bun run docker:up     # smoke infra
+```
+
+Detalhes de stack, UX e pontuação: `README.md`.

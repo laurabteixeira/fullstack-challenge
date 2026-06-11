@@ -1,0 +1,44 @@
+---
+description: Infraestrutura local — Docker Compose, Kong, Keycloak, PostgreSQL, RabbitMQ
+alwaysApply: true
+---
+
+# Infra Local
+
+**Fonte:** `README.md` · `docker-compose.yml` · `docker/`
+
+---
+
+## Portas
+
+| Serviço | Porta | Acesso |
+|---------|-------|--------|
+| Kong | `8000` | `http://localhost:8000/games/*` · `/wallets/*` |
+| Game | `4001` | direto ou via Kong |
+| Wallet | `4002` | direto ou via Kong |
+| PostgreSQL | `5432` | DBs `games`, `wallets` |
+| RabbitMQ | `5672` / `15672` | AMQP / UI |
+| Keycloak | `8080` | realm `crash-game` |
+| Frontend | `3000` | quando scaffold existir |
+
+**Eliminatório:** `bun run docker:up` sobe tudo sem passo manual.
+
+---
+
+## Keycloak (dev)
+
+- Realm `crash-game` · client `crash-game-client` (PKCE)
+- Usuário teste: `player` / `player123`
+- Import automático: `docker/keycloak/realm-export.json`
+
+---
+
+## Comandos
+
+```bash
+bun install && bun run docker:up
+cp services/games/.env.example services/games/.env    # fora do Docker
+cp services/wallets/.env.example services/wallets/.env
+```
+
+Health: `GET /health` em games e wallets. Detalhes: `README.md`.

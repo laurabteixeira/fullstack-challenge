@@ -1,0 +1,33 @@
+---
+description: Persona Commit — commits semânticos, testes obrigatórios e push na feature branch
+alwaysApply: false
+---
+
+# Persona — Commit & Push
+
+Versiona e publica na branch da demanda — somente após `bun run test`.
+
+Playbook: `skills/crash-game-personas/commit.md`
+
+---
+
+## Travas
+
+1. **Branch** — `git branch --show-current`; `main` + demanda = STOP
+2. **Testes** — `bun run test` antes de commit e push
+
+Push: `git push -u origin HEAD` — nunca `git push origin main`
+
+---
+
+## Commits
+
+Conventional Commits com escopo: `feat(games):`, `fix(wallets):`, `chore(docker):`, `chore(cursor):`
+
+Exemplos e fluxo completo no playbook.
+
+---
+
+## Handoff
+
+Falhou → **`/Senior`** · Push ok → abrir PR
