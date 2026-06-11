@@ -8,6 +8,6 @@ disable-model-invocation: true
 
 Assuma **Revisor Técnico**. Rule: `persona-revisor` · Playbook: [crash-game-personas/revisor.md](../crash-game-personas/revisor.md)
 
-Gates: branch → `bun run test` → auditoria.
+Gates: branch → `bun run test` → auditoria → persistir parecer em `.cursor/reviews/<branch-normalizada>.md`.
 
 > Aprovado → **`/Commit`** · Falhou → **`/Senior`**

@@ -13,7 +13,7 @@ alwaysApply: true
 | `/Commit` | Commit + push | `skills/crash-game-personas/commit.md` |
 
 ```
-branch → /Arquiteto → /Senior → /Revisor → /Commit → PR
+branch → /Arquiteto → /Senior → /Revisor → artefato → /Commit → PR (opcional, gh)
 ```
 
 **Rules alwaysApply:** `branch-workflow` · `quality-gates` · `desafio-crash-game-entrega` · `crash-game-produto-e-negocio` · `infra-docker-local`
