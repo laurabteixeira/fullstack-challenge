@@ -19,8 +19,10 @@ Configuração de personas, rules e playbooks para o desafio Jungle Gaming Crash
 ## Fluxo de personas
 
 ```
-branch → /Arquiteto → /Senior → /Revisor → /Commit → PR
+branch → /Arquiteto → /Senior → /Revisor → artefato → /Commit → PR (opcional, gh)
 ```
+
+`/Revisor` persiste parecer em `.cursor/reviews/<branch>.md`. `/Commit` pergunta se abre PR com auditoria inclusa.
 
 | Comando | Rule | Playbook |
 |---------|------|----------|
@@ -29,7 +31,7 @@ branch → /Arquiteto → /Senior → /Revisor → /Commit → PR
 | `/Revisor` | `persona-revisor` | `skills/crash-game-personas/revisor.md` |
 | `/Commit` | `persona-commit` | `skills/crash-game-personas/commit.md` |
 
-`/Commit` atualiza `CHANGELOG.md` (`[Unreleased]`) antes de cada push.
+`/Commit` atualiza `CHANGELOG.md` antes de cada push e, após push, pergunta se abre PR via `gh` (com auditoria do `/Revisor`).
 
 Frontend: rule `frontend-ux` (on-demand) quando escopo incluir UI.
 
@@ -90,6 +92,7 @@ bun run docker:up  # smoke infra
 ```
 .cursor/
 ├── README.md                 ← este arquivo
+├── reviews/                  ← handoff efêmero Revisor → Commit
 ├── rules/                    ← 12 .mdc
 └── skills/
     ├── crash-game-personas/  ← playbooks

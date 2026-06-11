@@ -19,6 +19,14 @@ Playbook (template de parecer): `skills/crash-game-personas/revisor.md`
 
 ---
 
+## Handoff para `/Commit`
+
+Ao finalizar o parecer, **persistir** em `.cursor/reviews/<branch-normalizada>.md` (contrato em `.cursor/reviews/README.md`).
+
+Informar o caminho do artefato no handoff.
+
+---
+
 ## Rules de referência
 
 `branch-workflow` · `quality-gates` · `desafio-crash-game-entrega` · `crash-game-produto-e-negocio` · `engenheiro-fullstack-senior` · `infra-docker-local` · `frontend-ux` (se UI) · `README.md`
@@ -27,8 +35,8 @@ Playbook (template de parecer): `skills/crash-game-personas/revisor.md`
 
 ## Veredito
 
-- **✅ Aprovado** — testes OK + sem blockers → **`/Commit`**
-- **🔄 Changes requested** → **`/Senior`**
+- **✅ Aprovado** — testes OK + sem blockers → artefato `veredito: approved` → **`/Commit`**
+- **🔄 Changes requested** → artefato `veredito: changes_requested` → **`/Senior`**
 - Escopo incorreto → **`/Arquiteto`**
 
 Parecer deve incluir seções **Branch**, **Quality gates**, **Achados**, **Veredito** (ver playbook).

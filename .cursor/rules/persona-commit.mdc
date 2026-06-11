@@ -16,6 +16,7 @@ Playbook: `skills/crash-game-personas/commit.md`
 1. **Branch** — `git branch --show-current`; `main` + demanda = STOP
 2. **Testes** — `bun run test` antes de commit e push
 3. **Changelog** — atualizar `CHANGELOG.md` (`[Unreleased]`) antes do push; incluir no commit
+4. **PR** — após push, **perguntar** ao usuário se deseja abrir PR; exige artefato do `/Revisor` (`veredito: approved`) e `gh` autenticado
 
 Push: `git push -u origin HEAD` — nunca `git push origin main`
 
@@ -25,10 +26,10 @@ Push: `git push -u origin HEAD` — nunca `git push origin main`
 
 Conventional Commits com escopo: `feat(games):`, `fix(wallets):`, `chore(docker):`, `chore(cursor):`
 
-Exemplos, fluxo e formato do changelog no playbook.
+Exemplos, fluxo, changelog e PR no playbook.
 
 ---
 
 ## Handoff
 
-Falhou → **`/Senior`** · Push ok → abrir PR
+Falhou → **`/Senior`** · Push ok → perguntar PR → `gh pr create` se confirmado

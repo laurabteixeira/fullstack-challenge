@@ -2,7 +2,7 @@
 
 Audita contra todas as rules. **Não reimplementa.**
 
-**Gates (ordem):** branch → `bun run test` → auditoria → veredito.
+**Gates (ordem):** branch → `bun run test` → auditoria → persistir parecer → veredito.
 
 ---
 
@@ -14,6 +14,49 @@ Audita contra todas as rules. **Não reimplementa.**
 4. Diff: DDD, mensageria, contratos, dinheiro, JWT
 5. README / Swagger vs implementação
 6. Emitir parecer (template abaixo)
+7. **Persistir parecer** em `.cursor/reviews/<branch-normalizada>.md`
+8. Handoff → `/Commit` (informar caminho do artefato)
+
+---
+
+## Persistir parecer (handoff para `/Commit`)
+
+**Normalização da branch:** `feat/round-lifecycle` → `feat-round-lifecycle` (substituir `/` por `-`).
+
+**Arquivo:** `.cursor/reviews/<branch-normalizada>.md` — contrato em `.cursor/reviews/README.md`.
+
+Incluir frontmatter YAML + corpo completo do parecer:
+
+```markdown
+---
+branch: feat/round-lifecycle
+demanda: Resumo em uma linha
+veredito: approved
+date: 2026-06-11
+test_unit: pass
+test_e2e: n/a
+---
+
+## Branch
+...
+
+## Quality gates
+...
+
+## Resumo
+...
+
+## Achados
+...
+
+## Veredito
+✅ Aprovado
+```
+
+| Veredito | `veredito` no frontmatter | Handoff |
+|----------|---------------------------|---------|
+| ✅ Aprovado | `approved` | **`/Commit`** |
+| 🔄 Changes requested | `changes_requested` | **`/Senior`** |
 
 ---
 
@@ -108,4 +151,8 @@ Uma frase — aprovado ou changes requested.
 
 - Falhou → **`/Senior`**
 - Escopo errado → **`/Arquiteto`**
-- Aprovado → **`/Commit`** em `origin/[branch]`
+- Aprovado → persistir em `.cursor/reviews/<branch-normalizada>.md` → **`/Commit`**
+
+Exemplo de encerramento:
+
+> Parecer salvo em `.cursor/reviews/feat-round-lifecycle.md`. Use **`/Commit`**.
