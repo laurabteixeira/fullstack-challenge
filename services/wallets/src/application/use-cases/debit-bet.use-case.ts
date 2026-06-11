@@ -20,7 +20,6 @@ export class DebitBetUseCase {
     @Inject(WALLET_REPOSITORY)
     private readonly walletRepository: WalletRepository,
     @Inject("MessagePublisher")
-    @Inject("MessagePublisher")
     private readonly publisher: MessagePublisher,
   ) {}
 
