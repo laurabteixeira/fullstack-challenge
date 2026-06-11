@@ -48,7 +48,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - name: Start infrastructure
-        run: docker compose up -d --wait postgres localstack games wallets kong
+        run: docker compose up -d --wait postgres localstack keycloak games wallets kong
 
       - name: Dump LocalStack logs on failure
         if: failure()

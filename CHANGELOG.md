@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — `feat/wallet-service` (2026-06-11)
+
+- Domínio `Wallet` com saldo em centavos (`bigint`) e invariantes de débito/crédito
+- Prisma + PostgreSQL com migrations automáticas no Docker (`prisma migrate deploy`)
+- `POST /wallets` e `GET /wallets/me` com JWT Keycloak (`sub` → `playerId`)
+- Consumer `bet.debit_requested` publicando `bet.debited` ou `bet.debit_failed`
+- Idempotência persistente via `idempotency_key` único em `wallet_transactions`
+- Testes unitários de domínio/use cases e E2E wallets com Keycloak
+
 ### Added — `feat/sqs-localstack` (2026-06-11)
 
 - LocalStack SQS substitui RabbitMQ no `docker-compose.yml`
