@@ -29,6 +29,8 @@ branch → /Arquiteto → /Senior → /Revisor → /Commit → PR
 | `/Revisor` | `persona-revisor` | `skills/crash-game-personas/revisor.md` |
 | `/Commit` | `persona-commit` | `skills/crash-game-personas/commit.md` |
 
+`/Commit` atualiza `CHANGELOG.md` (`[Unreleased]`) antes de cada push.
+
 Frontend: rule `frontend-ux` (on-demand) quando escopo incluir UI.
 
 ---

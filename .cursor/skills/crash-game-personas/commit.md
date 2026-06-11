@@ -33,16 +33,45 @@ E2E (`bun run test:e2e`) quando escopo alterou fluxo integrado.
 
 ---
 
+## Trava #3 — changelog
+
+Antes de cada **push**, atualizar `CHANGELOG.md` na raiz do repositório.
+
+| Regra | Detalhe |
+|-------|---------|
+| Seção | `[Unreleased]` |
+| Granularidade | Um bloco por push (não por commit individual) |
+| Cabeçalho do bloco | `### {Added\|Changed\|Fixed\|Removed\|Security} — \`branch\` (YYYY-MM-DD)` |
+| Conteúdo | Bullets em linguagem de produto/domínio — refletem o `git diff` real |
+| Commit | `CHANGELOG.md` no mesmo commit da mudança ou no último commit antes do push |
+
+**Formato do bloco:**
+
+```markdown
+### Added — `feat/round-lifecycle` (2026-06-11)
+- Máquina de estados da rodada (`WAITING_BETS` → `RUNNING` → `CRASHED`)
+- Testes unitários de transição de fase em `services/games`
+```
+
+**Não fazer:**
+
+- Bullets genéricos (`update files`, `fix bug`)
+- Entrada inventada que não bate com o diff
+- Push sem tocar em `CHANGELOG.md` quando há mudanças substantivas
+
+---
+
 ## Fluxo
 
 1. `git branch --show-current`
 2. `git status` · `git diff` · `git log -3`
 3. `bun run test`
 4. Propor commit(s) semânticos
-5. `git add` + `git commit` (HEREDOC)
-6. `bun run test` novamente
-7. Confirmar push
-8. `git push -u origin HEAD`
+5. **Atualizar `CHANGELOG.md`** — bloco em `[Unreleased]` para este push
+6. `git add` (inclui `CHANGELOG.md`) + `git commit` (HEREDOC)
+7. `bun run test` novamente
+8. Confirmar push
+9. `git push -u origin HEAD`
 
 ---
 
@@ -66,7 +95,7 @@ feat(wallets): consume bet.debit_requested event
 fix(games): reject bet outside WAITING_BETS phase
 test(wallets): cover insufficient balance debit
 chore(docker): update kong routes for websocket
-chore(cursor): slim alwaysApply rules
+chore(cursor): require changelog on commit persona push
 ```
 
 ### Git history (10% da nota)
@@ -74,6 +103,7 @@ chore(cursor): slim alwaysApply rules
 - Um commit por unidade lógica — não um commit gigante no final
 - Mensagem explica o **porquê**, não só o quê
 - Progressão: domínio → infra → API → testes (quando fizer sentido)
+- `CHANGELOG.md` complementa commits — visão acumulada por push/PR
 
 ---
 
@@ -94,6 +124,11 @@ chore(cursor): slim alwaysApply rules
 
 ## Quality gates
 - `bun run test`: ✅
+
+## Changelog
+- Arquivo: `CHANGELOG.md` → `[Unreleased]`
+- Entrada: Added — `feat/...` (2026-06-11)
+  - ...
 
 ## Commit
 **Mensagem:** feat(games): ...
