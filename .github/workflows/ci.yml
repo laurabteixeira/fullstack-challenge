@@ -47,13 +47,8 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Prepare service env files
-        run: |
-          cp services/games/.env.example services/games/.env
-          cp services/wallets/.env.example services/wallets/.env
-
       - name: Start infrastructure
-        run: docker compose up -d --wait postgres rabbitmq games wallets kong
+        run: docker compose up -d --wait postgres localstack games wallets kong
 
       - run: bun run test:e2e
 

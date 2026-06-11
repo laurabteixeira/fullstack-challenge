@@ -58,7 +58,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
                     └──┬─────┬──┘   └──────┬───────┘
                        │     └──────┬──────┘
                   ┌────▼────┐  ┌────▼──────────┐
-                  │PostgreSQL│  │ RabbitMQ/SQS  │
+                  │PostgreSQL│  │ SQS LocalStack│
                   └─────────┘  └───────────────┘
 
               ┌─────────────────┐
@@ -76,7 +76,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 | **Runtime**     | Bun (latest)                                                      |
 | **Backend**     | NestJS + TypeScript (strict mode)                                 |
 | **Banco**       | PostgreSQL 18+ com ORM (MikroORM, Prisma ou TypeORM)              |
-| **Mensageria**  | RabbitMQ, Kafka Ou AWS SQS (Via LocalStack)                       |
+| **Mensageria**  | AWS SQS via LocalStack (dev)                                      |
 | **API Gateway** | Kong ou AWS API Gateway                                           |
 | **IdP**         | Keycloak (preferido), Auth0 ou Okta                               |
 | **WebSocket**   | `@nestjs/websockets` + `socket.io` ou `ws`                        |
@@ -111,7 +111,7 @@ Responsável pela carteira do jogador: saldo, operações de crédito e débito.
 
 ### Comunicação entre serviços
 
-Game e Wallet se comunicam **assincronamente via RabbitMQ/SQS**. Você deve projetar os eventos, fluxos e estratégias de compensação necessários para garantir consistência entre os serviços.
+Game e Wallet se comunicam **assincronamente via AWS SQS** (LocalStack em dev). Você deve projetar os eventos, fluxos e estratégias de compensação necessários para garantir consistência entre os serviços.
 
 O design dessa comunicação é **parte central da avaliação**.
 
@@ -210,14 +210,16 @@ O repositório já inclui `docker-compose.yml` e arquivos de suporte prontos par
 | Serviço        | Imagem                             | Portas                                  |
 | -------------- | ---------------------------------- | --------------------------------------- |
 | PostgreSQL     | `postgres:18.3-alpine`             | `5432` (databases: `games` e `wallets`) |
-| RabbitMQ       | `rabbitmq:4.2.4-management-alpine` | `5672` (AMQP), `15672` (UI)             |
+| LocalStack SQS | `localstack/localstack:4.4.0`      | `4566` (edge)                           |
 | Keycloak       | `quay.io/keycloak/keycloak:26.5.5` | `8080`                                  |
 | Kong           | `kong:3.9.1`                       | `8000` (proxy), `8001` (admin)          |
 | Frontend       | —                                  | `http://localhost:3000`                 |
 | Game Service   | —                                  | `http://localhost:4001`                 |
 | Wallet Service | —                                  | `http://localhost:4002`                 |
 
-**Você pode modificar qualquer parte da infra.** Prefere SQS ao invés de RabbitMQ? Outro API Gateway? Outro IdP? Fique à vontade. O único requisito é que **`bun run docker:up` suba tudo sem nenhum passo manual** — incluindo realm do Keycloak, config do Kong e migrations de banco.
+**Mensageria:** filas SQS são criadas automaticamente no `docker:up` via `docker/localstack/init-sqs.sh` (prefixo `crash-`, alinhadas aos eventos canônicos). Pacote compartilhado `@crash/messaging` em `packages/messaging/`.
+
+O único requisito é que **`bun run docker:up` suba tudo sem nenhum passo manual** — incluindo realm do Keycloak, config do Kong, filas SQS e migrations de banco.
 
 ### Keycloak
 
@@ -244,7 +246,7 @@ Cada serviço tem:
 
 - Estrutura de camadas DDD: `domain/`, `application/`, `infrastructure/`, `presentation/`
 - `tests/unit/` e `tests/e2e/` prontos para receber os testes
-- `packages/` na raiz do monorepo para pacotes compartilhados entre serviços (ex: `@crash/eslint`)
+- `packages/messaging` (`@crash/messaging`) — eventos, filas SQS e ports de publisher/consumer
 
 **Frontend — a implementar.** A pasta `frontend/` existe mas o scaffold é responsabilidade do candidato. Use o framework de sua preferência:
 
@@ -256,16 +258,16 @@ O placeholder no `docker-compose.yml` está comentado — descomente e adapte co
 
 ### Variáveis de ambiente
 
-As credenciais de infraestrutura (PostgreSQL, RabbitMQ, Keycloak) estão hardcoded no `docker-compose.yml` — são valores de desenvolvimento local, sem necessidade de `.env` no root.
+As credenciais de infraestrutura (PostgreSQL, LocalStack, Keycloak) e as variáveis dos serviços (`PORT`, `DATABASE_URL`, AWS) estão definidas no `docker-compose.yml` — **`bun run docker:up` não exige cópia manual de `.env`**.
 
-Cada serviço possui `.env.example` com as variáveis necessárias. Copie para `.env` antes de rodar fora do Docker:
+Para rodar um serviço **fora do Docker** (ex.: `bun run dev` em `services/games`), copie o `.env.example`:
 
 ```bash
 cp services/games/.env.example services/games/.env
 cp services/wallets/.env.example services/wallets/.env
 ```
 
-**Você pode modificar qualquer parte da infra.** Prefere SQS ao invés de RabbitMQ? Outro API Gateway? Outro IdP? Fique à vontade. O único requisito é que **`bun run docker:up` suba tudo**.
+Variáveis AWS para SQS local: `AWS_REGION`, `AWS_ENDPOINT_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (ver `.env.example` de cada serviço).
 
 ### Comandos
 
@@ -374,7 +376,7 @@ O workflow `.github/workflows/ci.yml` roda em todo **push** e em **pull requests
 | Job | Comando | Infra |
 | --- | --- | --- |
 | **unit** | `bun run test` | Nenhuma |
-| **e2e** | `bun run test:e2e` | `docker compose up -d --wait postgres rabbitmq games wallets kong` |
+| **e2e** | `bun run test:e2e` | `docker compose up -d --wait postgres localstack games wallets kong` |
 
 Os jobs rodam em paralelo. O job E2E copia `services/*/.env.example` para `.env` e sobe só os serviços necessários aos testes atuais (Keycloak fica de fora até haver E2E com JWT).
 
@@ -388,7 +390,7 @@ Os jobs rodam em paralelo. O job E2E copia `services/*/.env.example` para `.env`
 
 - `bun run docker:up` sobe tudo sem passos manuais
 - Gameplay funciona (apostar → multiplicador → cashout/crash → liquidação)
-- Dois serviços separados comunicando via RabbitMQ/SQS
+- Dois serviços separados comunicando via SQS
 - Sincronização em tempo real (múltiplas abas mostram o mesmo estado)
 - Precisão monetária (sem ponto flutuante para dinheiro, saldo nunca negativo)
 - Autenticação via IdP (Keycloak/Auth0/Okta) — backend valida JWTs

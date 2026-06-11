@@ -1,0 +1,24 @@
+# Changelog
+
+All notable changes to this project are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added — `feat/sqs-localstack` (2026-06-11)
+
+- LocalStack SQS substitui RabbitMQ no `docker-compose.yml`
+- Bootstrap automático de 6 filas via `docker/localstack/init-sqs.sh`
+- Pacote `@crash/messaging` com eventos, envelope, client SQS, consumer e ports
+- `MessagingModule` scaffold em `games` e `wallets` com health `messaging: ok|degraded`
+- Variáveis dos serviços inline no `docker-compose.yml` (sem `.env` manual no Docker)
+- CI e README atualizados para SQS/LocalStack
+
+### Fixed — `feat/sqs-localstack` (2026-06-11)
+
+- Health retorna HTTP 503 e `status: degraded` quando SQS indisponível
+- Consumer com try/catch, cache de queue URL e dedup in-memory por `idempotencyKey`
+- Validação de `eventType` canônico no envelope
+- E2E publish → receive via LocalStack

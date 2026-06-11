@@ -1,5 +1,5 @@
 ---
-description: Infraestrutura local — Docker Compose, Kong, Keycloak, PostgreSQL, RabbitMQ
+description: Infraestrutura local — Docker Compose, Kong, Keycloak, PostgreSQL, SQS LocalStack
 alwaysApply: true
 ---
 
@@ -17,11 +17,11 @@ alwaysApply: true
 | Game | `4001` | direto ou via Kong |
 | Wallet | `4002` | direto ou via Kong |
 | PostgreSQL | `5432` | DBs `games`, `wallets` |
-| RabbitMQ | `5672` / `15672` | AMQP / UI |
+| LocalStack SQS | `4566` | edge API |
 | Keycloak | `8080` | realm `crash-game` |
 | Frontend | `3000` | quando scaffold existir |
 
-**Eliminatório:** `bun run docker:up` sobe tudo sem passo manual.
+**Eliminatório:** `bun run docker:up` sobe tudo sem passo manual (inclui filas SQS).
 
 ---
 
@@ -41,4 +41,4 @@ cp services/games/.env.example services/games/.env    # fora do Docker
 cp services/wallets/.env.example services/wallets/.env
 ```
 
-Health: `GET /health` em games e wallets. Detalhes: `README.md`.
+Health: `GET /health` em games e wallets (inclui `messaging`). Detalhes: `README.md`.

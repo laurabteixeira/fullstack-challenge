@@ -1,4 +1,5 @@
 export class HealthCheckResponseDto {
-  status: string;
+  status: "ok" | "degraded";
   service: string;
+  messaging: "ok" | "degraded";
 }

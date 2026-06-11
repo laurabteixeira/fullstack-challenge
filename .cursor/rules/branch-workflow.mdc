@@ -42,7 +42,7 @@ alwaysApply: true
 | Demanda | Sugestões de branch |
 |---------|---------------------|
 | Engine de rodadas | `feat/round-lifecycle` · `feat/game-round-engine` |
-| Integração Wallet via RabbitMQ | `feat/wallet-messaging` · `feat/bet-debit-events` |
+| Integração Wallet via SQS | `feat/wallet-messaging` · `feat/bet-debit-events` |
 | Provably fair | `feat/provably-fair` · `feat/crash-point-verification` |
 | Frontend scaffold | `feat/frontend-scaffold` · `feat/crash-ui` |
 | WebSocket sync | `feat/websocket-events` · `feat/multiplier-push` |
