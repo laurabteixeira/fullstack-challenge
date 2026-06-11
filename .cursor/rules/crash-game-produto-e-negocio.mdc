@@ -1,0 +1,86 @@
+---
+description: Contexto de produto, domínio e regras de negócio do Crash Game
+alwaysApply: true
+---
+
+# Crash Game — Produto e Domínio
+
+Jogo **multiplayer em tempo real**. Multiplicador sobe a partir de `1.00x`; jogadores apostam na fase de apostas e sacam antes do crash.
+
+**Fonte:** `README.md` · `desafio-crash-game-entrega` (endpoints e eliminatórios)
+
+---
+
+## Bounded contexts
+
+| Contexto | Serviço | Agregado |
+|----------|---------|----------|
+| Round, Bet, Crash Point | `services/games` | `Round`, `Bet` |
+| Wallet | `services/wallets` | `Wallet` |
+
+**Regra de ouro:** crédito e débito da Wallet **nunca** via REST — somente via broker.
+
+Saldo em centavos (`BIGINT`), `NUMERIC` ou Decimal — **nunca `float`**.
+
+---
+
+## Regras de negócio (resumo)
+
+- Uma aposta por jogador por rodada; min `1.00` / max `1.000,00`
+- Aposta só na fase de apostas; cashout só com aposta ativa durante rodada
+- Crash point **pré-determinado** (provably fair); verificável em `GET /games/rounds/:roundId/verify`
+- Saldo nunca negativo
+
+---
+
+## Eventos de mensageria — referência canônica
+
+Nomes e fluxos abaixo são a **referência de domínio**. Ajustes no plano devem ser documentados no README.
+
+### Aposta
+
+| Evento | Publicador | Consumidor | Payload mínimo |
+|--------|------------|------------|----------------|
+| `bet.debit_requested` | games | wallets | `betId`, `playerId`, `amount`, `idempotencyKey` |
+| `bet.debited` | wallets | games | `betId`, `idempotencyKey` |
+| `bet.debit_failed` | wallets | games | `betId`, `reason`, `idempotencyKey` |
+| `bet.cancelled` | games | wallets | `betId`, `idempotencyKey` |
+
+Fluxo: `POST /games/bet` → games valida → `bet.debit_requested` → wallets debita → `bet.debited` ou `bet.debit_failed` → games confirma ou rejeita aposta.
+
+### Liquidação
+
+| Evento | Publicador | Consumidor | Payload mínimo |
+|--------|------------|------------|----------------|
+| `round.settled` | games | wallets | `roundId`, `results: [{betId, playerId, payout}]`, `idempotencyKey` |
+| `round.settlement_done` | wallets | games | `roundId`, `idempotencyKey` |
+
+Fluxo: rodada termina → `round.settled` → wallets credita/perde → `round.settlement_done`.
+
+### Compensação
+
+- Timeout sem `bet.debited` → games publica `bet.cancelled`
+- `round.settlement_done` ausente → retry com backoff (ex.: 3x)
+- Todos os eventos carregam `idempotencyKey` para processamento idempotente
+
+---
+
+## Onde alterar o quê
+
+| Mudança | Local |
+|---------|-------|
+| Domínio | `services/*/src/domain/` |
+| Use cases | `services/*/src/application/` |
+| HTTP / WS | `services/*/src/presentation/` |
+| DB / messaging | `services/*/src/infrastructure/` |
+| UI | `frontend/src/` |
+
+Controller/gateway **não** contém regra de negócio.
+
+---
+
+## Anti-padrões
+
+- Float para dinheiro · débito/crédito REST na Wallet · crash point pós-apostas
+- Regra de negócio no controller · teste de domínio com DB/broker real
+- JWT custom em vez de Keycloak

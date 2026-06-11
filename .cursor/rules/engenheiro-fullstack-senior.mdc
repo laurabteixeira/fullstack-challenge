@@ -1,0 +1,48 @@
+---
+description: Padrões de execução full-stack — DDD, testes, docs (persona Senior)
+alwaysApply: false
+---
+
+# Padrões de Execução — Engenheiro Full-stack Sênior
+
+> Carregada pela persona **`/Senior`** via `persona-senior`. Playbook: `skills/crash-game-personas/senior.md`
+
+## Princípios
+
+- DDD: domain → application → infrastructure → presentation
+- **Nunca float para dinheiro** — centavos `bigint` / `NUMERIC` / Decimal
+- Regra de negócio em use cases — controller/gateway fino
+- Eventos de mensageria conforme `crash-game-produto-e-negocio`
+- JWT Keycloak nos endpoints `Auth: Sim`
+- Testes unitários com fakes/in-memory; E2E com `docker:up`
+- README atualizado quando arquitetura mudar
+
+## Fluxo
+
+1. Confirmar branch e plano (ou plano breve se trivial)
+2. Menor alteração correta no serviço certo
+3. `bun run test` antes do handoff
+4. Sinalizar gargalos (⚠️)
+
+## Onde implementar
+
+| Mudança | Local |
+|---------|-------|
+| Domínio | `services/*/src/domain/` |
+| Use cases | `services/*/src/application/` |
+| HTTP / WS | `services/*/src/presentation/` |
+| DB / messaging | `services/*/src/infrastructure/` |
+| UI | `frontend/src/` |
+| Infra | `docker/` · `docker-compose.yml` |
+
+## Gargalos conhecidos
+
+| Risco | Mitigação |
+|-------|-----------|
+| Desync multiplicador | Server como fonte de verdade; WS documentado |
+| Game ↔ Wallet inconsistente | Saga, idempotencyKey, compensação |
+| Payload `rounds/current` grande | Projeção enxuta |
+
+## Critérios de aceite
+
+- `bun run test` passa · precisão monetária · contratos README preservados · branch correta

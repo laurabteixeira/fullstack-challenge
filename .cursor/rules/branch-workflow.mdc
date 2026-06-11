@@ -1,0 +1,100 @@
+---
+description: Branch por demanda — toda demanda nova ou ajuste exige branch separada; Commit pusha na branch, nunca direto em main
+alwaysApply: true
+---
+
+# Branch por Demanda — Workflow Git
+
+**Toda demanda nova ou ajuste** deve ser desenvolvida em **branch separada**. Push vai para **`origin/<branch>`**, não para `main`/`master`.
+
+## Quando exige branch
+
+| Situação | Branch obrigatória |
+|----------|-------------------|
+| Feature nova | ✅ Sim |
+| Ajuste / correção | ✅ Sim |
+| Refactor | ✅ Sim |
+| Docs / CI / chore | ✅ Sim |
+| Hotfix urgente | ✅ Sim (ex.: `fix/<slug>`) |
+
+**Exceção:** merge de PR já aprovado em `main` — fora do fluxo de desenvolvimento das personas.
+
+## Convenção de nomes
+
+```
+<tipo>/<slug-curto-kebab-case>
+```
+
+| Tipo | Uso |
+|------|-----|
+| `feat/` | Feature nova ou evolução |
+| `fix/` | Correção de bug ou review |
+| `refactor/` | Refatoração sem mudança de comportamento |
+| `docs/` | Só documentação |
+| `ci/` | Pipeline, GitHub Actions |
+| `chore/` | Tooling, deps, config, rules Cursor |
+| `test/` | Só testes |
+
+**Regras do slug:** minúsculas, hífens, 2–4 palavras, sem acentos, descritivo.
+
+### Exemplos (Crash Game)
+
+| Demanda | Sugestões de branch |
+|---------|---------------------|
+| Engine de rodadas | `feat/round-lifecycle` · `feat/game-round-engine` |
+| Integração Wallet via RabbitMQ | `feat/wallet-messaging` · `feat/bet-debit-events` |
+| Provably fair | `feat/provably-fair` · `feat/crash-point-verification` |
+| Frontend scaffold | `feat/frontend-scaffold` · `feat/crash-ui` |
+| WebSocket sync | `feat/websocket-events` · `feat/multiplier-push` |
+| Adaptar rules Cursor | `chore/adapt-cursor-rules-crash-game` |
+| CI pipeline (bônus) | `ci/github-actions-tests` |
+
+## Perguntas obrigatórias (todas as personas)
+
+Antes de planear, implementar, revisar ou commitar:
+
+1. **Qual é a demanda?** (resumo em uma linha)
+2. **Em qual branch estamos?** (`git branch --show-current`)
+3. **A branch está correta para esta demanda?** Se não → sugerir nomes e **aguardar confirmação**
+4. **Confirma usar a branch `<nome>`?** Não prosseguir sem resposta explícita se houver dúvida
+
+## Fluxo por persona
+
+| Persona | Responsabilidade com branch |
+|---------|----------------------------|
+| **`/Arquiteto`** | Primeiro passo: confirmar branch; incluir **Branch recomendada** no plano |
+| **`/Senior`** | Antes de codar: verificar branch; se em `main`, **criar e checkout** na branch confirmada |
+| **`/Revisor`** | Verificar branch ≠ `main`; nome alinhado à demanda; blocker se trabalho novo estiver em `main` |
+| **`/Commit`** | Confirmar branch; **push apenas** `git push -u origin HEAD`; **nunca** push direto em `main` |
+
+## Comandos Git
+
+```bash
+git branch --show-current
+
+git fetch origin
+git checkout main && git pull origin main
+git checkout -b feat/nome-da-demanda
+
+git push -u origin HEAD
+```
+
+## Proibido
+
+- ❌ Implementar demanda nova diretamente em `main`/`master`
+- ❌ `/Commit` fazer `git push origin main` para trabalho de feature/ajuste
+- ❌ Push sem confirmar branch com o usuário quando ambígua
+- ❌ Branch genérica (`fix`, `test`, `update`, `changes`)
+
+## Formato de confirmação (template)
+
+```markdown
+## Branch desta demanda
+- Demanda: [resumo]
+- Branch atual: `main` | `feat/...`
+- Sugestões:
+  1. `feat/...` (recomendada)
+  2. `fix/...`
+  3. `chore/...`
+- Confirma a branch `[nome]` para seguir?
+```
