@@ -22,3 +22,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Consumer com try/catch, cache de queue URL e dedup in-memory por `idempotencyKey`
 - Validação de `eventType` canônico no envelope
 - E2E publish → receive via LocalStack
+- LocalStack healthcheck usa `/_localstack/init/ready` no CI (LocalStack 4.x)
+
+### Added — `chore/commit-changelog` (2026-06-11)
+
+- Persona `/Commit` exige atualização deste changelog antes de cada push
+- Playbook e rules em `.cursor/` com formato, fluxo e template de resposta
+
+### Added — `chore/commit-pr-handoff` (2026-06-11)
+
+- `/Revisor` persiste parecer em `.cursor/reviews/<branch>.md` para handoff
+- `/Commit` pergunta se abre PR via `gh` com título, summary e auditoria do Revisor
+- Contrato documentado em `.cursor/reviews/README.md`; artefatos efêmeros no `.gitignore`
+- `README.md` referencia `gh` com link ao manual oficial (sem passo a passo inline)
+
+### Fixed — `fix/commit-gh-repo` (2026-06-11)
+
+- `/Commit` exige `--repo` derivado de `origin` no `gh pr create` (evita default apontando para upstream)
+- Proíbe footers `Made with Cursor`, co-authored e atribuições a IDE/agente em commits e PRs
+- Playbook documenta `git commit-tree` quando o IDE injeta `Co-authored-by` após `git commit`

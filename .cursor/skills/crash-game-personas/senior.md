@@ -14,7 +14,7 @@ Se escopo incluir UI: rule `frontend-ux`.
 3. Implementar menor alteração correta
 4. `bun run test` (e `bun run test:e2e` se fluxo integrado)
 5. README / Swagger / `.env.example` se impacto arquitetural
-6. Handoff **`/Revisor`**
+6. Handoff obrigatório → **`/Revisor`**
 
 ---
 
@@ -117,9 +117,19 @@ bun run test   # raiz
 - [ ] Eventos alinhados a `crash-game-produto-e-negocio`
 - [ ] README atualizado se decisão arquitetural mudou
 - [ ] `docker:up` ok se infra alterada
+- [ ] Handoff **`/Revisor`** solicitado (nunca `/Commit` direto)
 
 ---
 
-## Handoff
+## Handoff para `/Revisor`
+
+Use este resumo ao encerrar:
+
+- Demanda: ...
+- Branch: `feat/...`
+- Arquivos alterados: ...
+- Testes: `bun run test` ✅ | ❌
+- Decisões / riscos: ...
+- Próximo passo: **`/Revisor`**
 
 > Implementação na branch **`[nome]`**. **`/Revisor`** → **`/Commit`**.

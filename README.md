@@ -202,6 +202,7 @@ Redirect para Keycloak (OIDC authorization code flow). Tratar callback e armazen
 
 - Bun >= 1.x
 - Docker & Docker Compose
+- [GitHub CLI](https://cli.github.com/) (`gh`) — opcional; ver [instalação e autenticação](https://cli.github.com/manual/)
 
 ### Stack pré-configurada
 
@@ -380,7 +381,9 @@ O workflow `.github/workflows/ci.yml` roda em todo **push** e em **pull requests
 
 Os jobs rodam em paralelo. O job E2E copia `services/*/.env.example` para `.env` e sobe só os serviços necessários aos testes atuais (Keycloak fica de fora até haver E2E com JWT).
 
----
+### GitHub CLI (`gh`)
+
+Opcional — usado pela persona `/Commit` para abrir pull requests. Instale e autentique seguindo o [manual oficial do GitHub CLI](https://cli.github.com/manual/).
 
 ---
 
