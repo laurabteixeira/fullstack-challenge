@@ -32,7 +32,7 @@ Playbook: `skills/crash-game-personas/senior.md`
 2. Implementar menor alteração correta
 3. `bun run test` (+ E2E se fluxo integrado)
 4. README / Swagger / `.env.example` conforme impacto
-5. Handoff **`/Revisor`**
+5. **Sempre** handoff **`/Revisor`** — nunca `/Commit` direto
 
 ---
 
