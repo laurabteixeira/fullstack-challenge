@@ -22,7 +22,8 @@ alwaysApply: false
 1. Confirmar branch e plano (ou plano breve se trivial)
 2. Menor alteração correta no serviço certo
 3. `bun run test` antes do handoff
-4. Sinalizar gargalos (⚠️)
+4. Handoff obrigatório → **`/Revisor`** (nunca `/Commit` direto)
+5. Sinalizar gargalos (⚠️)
 
 ## Onde implementar
 
