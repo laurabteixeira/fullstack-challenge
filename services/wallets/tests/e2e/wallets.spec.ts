@@ -1,16 +1,22 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import {
   DOMAIN_EVENTS,
   createSqsClient,
   loadSqsConfigFromEnv,
-  receiveOneMessage,
   sendEnvelope,
 } from "@crash/messaging";
+import { receiveEnvelopeByIdempotencyKey } from "../../../../packages/messaging/tests/helpers/receive-envelope-by-idempotency-key";
+import {
+  cleanupWalletsForPlayer,
+  getPlayerIdFromAccessToken,
+} from "./wallets-e2e-db";
 
 const KONG_BASE_URL = process.env.KONG_BASE_URL ?? "http://localhost:8000";
 const KEYCLOAK_BASE_URL = process.env.KEYCLOAK_BASE_URL ?? "http://localhost:8080";
 const LOCALSTACK_ENDPOINT =
-  process.env.AWS_ENDPOINT_URL ?? "http://localhost:4566";
+  process.env.AWS_E2E_ENDPOINT_URL ?? "http://localhost:4566";
+
+let keycloakReachable = false;
 
 async function isKeycloakReachable(): Promise<boolean> {
   try {
@@ -43,10 +49,32 @@ async function getAccessToken(): Promise<string> {
   return body.access_token;
 }
 
+async function cleanupTestPlayerWallet(): Promise<void> {
+  const token = await getAccessToken();
+  await cleanupWalletsForPlayer(getPlayerIdFromAccessToken(token));
+}
+
 describe.serial("wallets e2e", () => {
-  test("creates wallet and returns balance via Kong", async () => {
-    if (!(await isKeycloakReachable())) {
+  beforeAll(async () => {
+    keycloakReachable = await isKeycloakReachable();
+    if (!keycloakReachable) {
       console.warn("Keycloak not reachable — skipping wallets e2e");
+      return;
+    }
+
+    await cleanupTestPlayerWallet();
+  });
+
+  afterAll(async () => {
+    if (!keycloakReachable) {
+      return;
+    }
+
+    await cleanupTestPlayerWallet();
+  });
+
+  test("creates wallet and returns balance via Kong", async () => {
+    if (!keycloakReachable) {
       return;
     }
 
@@ -75,8 +103,7 @@ describe.serial("wallets e2e", () => {
   }, 30000);
 
   test("debits wallet via bet.debit_requested and publishes bet.debited", async () => {
-    if (!(await isKeycloakReachable())) {
-      console.warn("Keycloak not reachable — skipping wallets e2e");
+    if (!keycloakReachable) {
       return;
     }
 
@@ -86,10 +113,15 @@ describe.serial("wallets e2e", () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const meResponse = await fetch(`${KONG_BASE_URL}/wallets/me`, {
+    const meBeforeResponse = await fetch(`${KONG_BASE_URL}/wallets/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const me = (await meResponse.json()) as { playerId: string };
+    expect(meBeforeResponse.status).toBe(200);
+    const meBefore = (await meBeforeResponse.json()) as {
+      playerId: string;
+      balanceCents: string;
+    };
+    expect(meBefore.balanceCents).toBe("100000");
 
     const config = loadSqsConfigFromEnv({
       AWS_REGION: process.env.AWS_REGION ?? "us-east-1",
@@ -99,29 +131,26 @@ describe.serial("wallets e2e", () => {
     });
     const client = createSqsClient(config);
     const idempotencyKey = `wallet-e2e-${Date.now()}`;
+    const betId = `bet-e2e-${Date.now()}`;
 
     await sendEnvelope(
       client,
       DOMAIN_EVENTS.BET_DEBIT_REQUESTED,
       idempotencyKey,
       {
-        betId: "bet-e2e-1",
-        playerId: me.playerId,
+        betId,
+        playerId: meBefore.playerId,
         amount: 1000,
         idempotencyKey,
       },
     );
 
-    let received = null;
-    for (let attempt = 0; attempt < 15; attempt++) {
-      received = await receiveOneMessage(client, DOMAIN_EVENTS.BET_DEBITED, {
-        waitSeconds: 2,
-      });
-      if (received?.idempotencyKey === idempotencyKey) {
-        break;
-      }
-      await Bun.sleep(1000);
-    }
+    const received = await receiveEnvelopeByIdempotencyKey(
+      client,
+      DOMAIN_EVENTS.BET_DEBITED,
+      idempotencyKey,
+      { maxAttempts: 15, waitSeconds: 2, sleepMs: 1000 },
+    );
 
     expect(received).not.toBeNull();
     expect(received!.eventType).toBe(DOMAIN_EVENTS.BET_DEBITED);

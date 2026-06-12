@@ -3,12 +3,12 @@ import {
   DOMAIN_EVENTS,
   createSqsClient,
   loadSqsConfigFromEnv,
-  receiveOneMessage,
   sendEnvelope,
 } from '@crash/messaging';
+import { receiveEnvelopeByIdempotencyKey } from '../../../../packages/messaging/tests/helpers/receive-envelope-by-idempotency-key';
 
 const LOCALSTACK_ENDPOINT =
-  process.env.AWS_ENDPOINT_URL ?? 'http://localhost:4566';
+  process.env.AWS_E2E_ENDPOINT_URL ?? 'http://localhost:4566';
 
 async function isLocalstackReachable(): Promise<boolean> {
   try {
@@ -46,16 +46,12 @@ describe('messaging e2e', () => {
       payload,
     );
 
-    let received = null;
-    for (let attempt = 0; attempt < 10; attempt++) {
-      received = await receiveOneMessage(client, DOMAIN_EVENTS.BET_DEBITED, {
-        waitSeconds: 2,
-      });
-      if (received?.idempotencyKey === idempotencyKey) {
-        break;
-      }
-      await Bun.sleep(500);
-    }
+    const received = await receiveEnvelopeByIdempotencyKey(
+      client,
+      DOMAIN_EVENTS.BET_DEBITED,
+      idempotencyKey,
+      { maxAttempts: 15, waitSeconds: 2 },
+    );
 
     expect(received).not.toBeNull();
     expect(received!.idempotencyKey).toBe(idempotencyKey);
