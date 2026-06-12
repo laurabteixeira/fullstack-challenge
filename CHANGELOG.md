@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — `fix/messaging-handler-types` (2026-06-12)
+
+- Registro do consumer `bet.debit_requested` tipado com `BetDebitRequestedPayload`, eliminando incompatibilidade `unknown` no bootstrap de mensageria
+- E2E wallets: teardown Prisma do usuário de teste em `beforeAll`/`afterAll` para banco limpo entre execuções
+- E2E SQS: helper `receiveEnvelopeByIdempotencyKey` descarta mensagens stale na fila `bet.debited`
+- E2E: endpoints LocalStack/Postgres via `localhost` quando testes rodam no host (`AWS_E2E_ENDPOINT_URL`, `WALLET_E2E_DATABASE_URL`)
+
 ### Added — `feat/wallet-service` (2026-06-11)
 
 - Domínio `Wallet` com saldo em centavos (`bigint`) e invariantes de débito/crédito

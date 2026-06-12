@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import type { MessageEnvelope } from "@crash/messaging";
 import { DebitBetUseCase } from "../use-cases/debit-bet.use-case";
 
-type BetDebitRequestedPayload = {
+export type BetDebitRequestedPayload = {
   betId: string;
   playerId: string;
   amount: number;
