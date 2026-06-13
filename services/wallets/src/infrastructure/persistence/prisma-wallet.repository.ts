@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../generated/prisma";
 import { DuplicateIdempotencyKeyError } from "../../domain/errors/duplicate-idempotency-key.error";
 import { Wallet } from "../../domain/wallet/wallet.entity";
 import {

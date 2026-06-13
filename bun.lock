@@ -19,19 +19,43 @@
         "typescript": "^5.8.3",
       },
     },
+    "packages/provably-fair": {
+      "name": "@crash/provably-fair",
+      "version": "0.0.1",
+      "devDependencies": {
+        "bun-types": "latest",
+        "typescript": "^5.8.3",
+      },
+    },
+    "packages/round-engine": {
+      "name": "@crash/round-engine",
+      "version": "0.0.1",
+      "dependencies": {
+        "@crash/provably-fair": "workspace:*",
+      },
+      "devDependencies": {
+        "bun-types": "latest",
+        "typescript": "^5.8.3",
+      },
+    },
     "services/games": {
       "name": "@crash/games",
       "version": "0.0.1",
       "dependencies": {
         "@crash/messaging": "workspace:*",
+        "@crash/provably-fair": "workspace:*",
+        "@crash/round-engine": "workspace:*",
         "@nestjs/common": "^11.1.17",
         "@nestjs/core": "^11.1.17",
         "@nestjs/platform-express": "^11.1.17",
+        "@prisma/client": "^6.9.0",
+        "jose": "^6.0.11",
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.2",
       },
       "devDependencies": {
         "bun-types": "latest",
+        "prisma": "^6.9.0",
         "typescript": "^5.8.3",
       },
     },
@@ -107,6 +131,10 @@
     "@crash/games": ["@crash/games@workspace:services/games"],
 
     "@crash/messaging": ["@crash/messaging@workspace:packages/messaging"],
+
+    "@crash/provably-fair": ["@crash/provably-fair@workspace:packages/provably-fair"],
+
+    "@crash/round-engine": ["@crash/round-engine@workspace:packages/round-engine"],
 
     "@crash/wallets": ["@crash/wallets@workspace:services/wallets"],
 

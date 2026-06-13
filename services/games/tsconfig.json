@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -17,8 +18,12 @@
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
+    "types": ["bun-types"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@crash/messaging": ["../../packages/messaging/src/index.ts"],
+      "@crash/provably-fair": ["../../packages/provably-fair/src/index.ts"],
+      "@crash/round-engine": ["../../packages/round-engine/src/index.ts"]
     }
   },
   "include": ["src/**/*"],
