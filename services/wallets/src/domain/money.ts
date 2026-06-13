@@ -12,3 +12,20 @@ export function centsFromNumber(value: number): Cents {
   }
   return BigInt(value);
 }
+
+export function centsFromString(value: string): Cents {
+  if (!/^\d+$/.test(value)) {
+    throw new Error("Amount must be a non-negative integer string in cents");
+  }
+  return BigInt(value);
+}
+
+export function parsePayoutCents(value: string | number): Cents {
+  if (typeof value === "string") {
+    return centsFromString(value);
+  }
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error("Payout must be a non-negative integer in cents");
+  }
+  return BigInt(value);
+}

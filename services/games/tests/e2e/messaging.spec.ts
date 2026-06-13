@@ -39,24 +39,24 @@ describe('messaging e2e', () => {
     const idempotencyKey = `e2e-${Date.now()}`;
     const payload = { test: true, betId: 'bet-e2e' };
 
-    // Use an event no running service consumes (games polls bet.debited).
+    // Use an event no running service consumes (wallets polls round.settled).
     await sendEnvelope(
       client,
-      DOMAIN_EVENTS.ROUND_SETTLED,
+      DOMAIN_EVENTS.BET_CANCELLED,
       idempotencyKey,
       payload,
     );
 
     const received = await receiveEnvelopeByIdempotencyKey(
       client,
-      DOMAIN_EVENTS.ROUND_SETTLED,
+      DOMAIN_EVENTS.BET_CANCELLED,
       idempotencyKey,
       { maxAttempts: 15, waitSeconds: 2 },
     );
 
     expect(received).not.toBeNull();
     expect(received!.idempotencyKey).toBe(idempotencyKey);
-    expect(received!.eventType).toBe(DOMAIN_EVENTS.ROUND_SETTLED);
+    expect(received!.eventType).toBe(DOMAIN_EVENTS.BET_CANCELLED);
     expect(received!.payload).toEqual(payload);
   }, 30000);
 });

@@ -3,6 +3,7 @@ import { Prisma } from "../../generated/prisma";
 import { DuplicateIdempotencyKeyError } from "../../domain/errors/duplicate-idempotency-key.error";
 import { Wallet } from "../../domain/wallet/wallet.entity";
 import {
+  type CreditTransactionInput,
   type DebitTransactionInput,
   type WalletRepository,
 } from "../../domain/wallet/wallet.repository";
@@ -53,6 +54,17 @@ export class PrismaWalletRepository implements WalletRepository {
   }
 
   async saveDebit(input: DebitTransactionInput): Promise<void> {
+    await this.saveLedgerEntry(input, "DEBIT");
+  }
+
+  async saveCredit(input: CreditTransactionInput): Promise<void> {
+    await this.saveLedgerEntry(input, "CREDIT");
+  }
+
+  private async saveLedgerEntry(
+    input: DebitTransactionInput | CreditTransactionInput,
+    type: "DEBIT" | "CREDIT",
+  ): Promise<void> {
     try {
       await this.prisma.$transaction(async (tx) => {
         await tx.wallet.update({
@@ -63,7 +75,7 @@ export class PrismaWalletRepository implements WalletRepository {
         await tx.walletTransaction.create({
           data: {
             walletId: input.wallet.id,
-            type: "DEBIT",
+            type,
             amountCents: input.amountCents,
             idempotencyKey: input.idempotencyKey,
             referenceId: input.referenceId,

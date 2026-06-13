@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — `feat/wallet-round-settlement` (2026-06-12)
+
+- Consumer `round.settled` na wallets com `SettleRoundUseCase` — crédito de payout em centavos (`bigint`) e publicação de `round.settlement_done`
+- Ledger `CREDIT` em `wallet_transactions` com idempotência por aposta (`round-settle-{roundId}:credit:{betId}`)
+- Payload `round.settled` com `payoutCents` string (games) para precisão monetária
+- E2E gameplay: apostar → débito → cashout via Kong; liquidação SQS em wallets E2E
+- Script `test:e2e` executa wallets antes de games (`&&`) para ordem determinística
+
 ### Added — `feat/games-round-engine` (2026-06-12)
 
 - Pacotes internos `@crash/provably-fair` (seeds, crash point, verificação) e `@crash/round-engine` (fases da rodada, curva do multiplicador)
@@ -23,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prisma client isolado por serviço (`src/generated/prisma`) evita conflito entre games e wallets no E2E
 - `services/games/tsconfig.json` com paths dos pacotes workspace para resolução TypeScript no monorepo
 - E2E wallets: assert de débito via saldo (games consome `bet.debited` antes do teste ler a fila)
-- E2E messaging: round-trip em `round.settled` (fila sem consumer ativo no CI)
+- E2E messaging: round-trip em `bet.cancelled` (fila sem consumer ativo no CI)
 
 ### Fixed — `fix/messaging-handler-types` (2026-06-12)
 
