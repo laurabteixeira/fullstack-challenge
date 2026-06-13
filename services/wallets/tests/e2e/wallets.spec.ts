@@ -5,7 +5,6 @@ import {
   loadSqsConfigFromEnv,
   sendEnvelope,
 } from "@crash/messaging";
-import { receiveEnvelopeByIdempotencyKey } from "../../../../packages/messaging/tests/helpers/receive-envelope-by-idempotency-key";
 import {
   cleanupWalletsForPlayer,
   getPlayerIdFromAccessToken,
@@ -52,6 +51,37 @@ async function getAccessToken(): Promise<string> {
 async function cleanupTestPlayerWallet(): Promise<void> {
   const token = await getAccessToken();
   await cleanupWalletsForPlayer(getPlayerIdFromAccessToken(token));
+}
+
+async function pollWalletBalance(
+  token: string,
+  expectedCents: string,
+  options: { timeoutMs?: number; intervalMs?: number } = {},
+): Promise<string> {
+  const timeoutMs = options.timeoutMs ?? 60_000;
+  const intervalMs = options.intervalMs ?? 500;
+  const deadline = Date.now() + timeoutMs;
+  let lastBalance = "unknown";
+
+  while (Date.now() < deadline) {
+    const response = await fetch(`${KONG_BASE_URL}/wallets/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.ok) {
+      const body = (await response.json()) as { balanceCents: string };
+      lastBalance = body.balanceCents;
+      if (body.balanceCents === expectedCents) {
+        return body.balanceCents;
+      }
+    }
+
+    await Bun.sleep(intervalMs);
+  }
+
+  throw new Error(
+    `Balance did not reach ${expectedCents} within ${timeoutMs}ms (last: ${lastBalance})`,
+  );
 }
 
 describe.serial("wallets e2e", () => {
@@ -102,7 +132,7 @@ describe.serial("wallets e2e", () => {
     expect(me.balanceCents).toBe("100000");
   }, 30000);
 
-  test("debits wallet via bet.debit_requested and publishes bet.debited", async () => {
+  test("debits wallet via bet.debit_requested", async () => {
     if (!keycloakReachable) {
       return;
     }
@@ -145,20 +175,8 @@ describe.serial("wallets e2e", () => {
       },
     );
 
-    const received = await receiveEnvelopeByIdempotencyKey(
-      client,
-      DOMAIN_EVENTS.BET_DEBITED,
-      idempotencyKey,
-      { maxAttempts: 15, waitSeconds: 2, sleepMs: 1000 },
-    );
-
-    expect(received).not.toBeNull();
-    expect(received!.eventType).toBe(DOMAIN_EVENTS.BET_DEBITED);
-
-    const balanceResponse = await fetch(`${KONG_BASE_URL}/wallets/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const balance = (await balanceResponse.json()) as { balanceCents: string };
-    expect(balance.balanceCents).toBe("99000");
+    // games also consumes bet.debited — assert debit via wallet balance, not SQS
+    const balanceCents = await pollWalletBalance(token, "99000");
+    expect(balanceCents).toBe("99000");
   }, 60000);
 });

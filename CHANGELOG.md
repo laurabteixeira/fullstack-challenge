@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `settledAt` passa a registrar o encerramento real da rodada em `COMPLETED` (histórico deixa de ficar preso em `SETTLING`)
 - Prisma client isolado por serviço (`src/generated/prisma`) evita conflito entre games e wallets no E2E
 - `services/games/tsconfig.json` com paths dos pacotes workspace para resolução TypeScript no monorepo
+- E2E wallets: assert de débito via saldo (games consome `bet.debited` antes do teste ler a fila)
+- E2E messaging: round-trip em `round.settled` (fila sem consumer ativo no CI)
 
 ### Fixed — `fix/messaging-handler-types` (2026-06-12)
 
