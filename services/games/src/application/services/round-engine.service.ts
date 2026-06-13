@@ -226,7 +226,7 @@ export class RoundEngineService {
       .map((bet) => ({
         betId: bet.id,
         playerId: bet.playerId,
-        payout: Number(bet.payoutCents ?? 0n),
+        payoutCents: String(bet.payoutCents ?? 0n),
       }));
 
     await this.publisher.publish(

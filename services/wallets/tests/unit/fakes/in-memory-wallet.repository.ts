@@ -1,6 +1,7 @@
 import { Wallet } from "../../../src/domain/wallet/wallet.entity";
 import { DuplicateIdempotencyKeyError } from "../../../src/domain/errors/duplicate-idempotency-key.error";
 import type {
+  CreditTransactionInput,
   DebitTransactionInput,
   WalletRepository,
 } from "../../../src/domain/wallet/wallet.repository";
@@ -39,6 +40,16 @@ export class InMemoryWalletRepository implements WalletRepository {
   }
 
   async saveDebit(input: DebitTransactionInput): Promise<void> {
+    await this.saveLedgerEntry(input);
+  }
+
+  async saveCredit(input: CreditTransactionInput): Promise<void> {
+    await this.saveLedgerEntry(input);
+  }
+
+  private async saveLedgerEntry(
+    input: DebitTransactionInput | CreditTransactionInput,
+  ): Promise<void> {
     if (this.idempotencyKeys.has(input.idempotencyKey)) {
       throw new DuplicateIdempotencyKeyError();
     }
