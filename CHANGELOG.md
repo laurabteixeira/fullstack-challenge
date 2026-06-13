@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — `feat/games-round-engine` (2026-06-12)
+
+- Pacotes internos `@crash/provably-fair` (seeds, crash point, verificação) e `@crash/round-engine` (fases da rodada, curva do multiplicador)
+- Domínio `Round`/`Bet` no `services/games` com Prisma/PostgreSQL e migrations
+- Engine de rodadas em background com fases `WAITING_BETS` → `RUNNING` → `CRASHED` → `SETTLING` → `COMPLETED`
+- Endpoints REST: rodada atual, histórico, verify provably fair, apostar, cashout e apostas do jogador
+- JWT Keycloak nos endpoints protegidos; saga SQS `bet.debit_requested` / `bet.debited` / `round.settled`
+- Testes unitários de domínio e SDKs
+
+### Fixed — `feat/games-round-engine` (2026-06-12)
+
+- Fase terminal `COMPLETED` no `@crash/round-engine`; rodada anterior é persistida antes de `createNextRound()`
+- `settledAt` passa a registrar o encerramento real da rodada em `COMPLETED` (histórico deixa de ficar preso em `SETTLING`)
+- Prisma client isolado por serviço (`src/generated/prisma`) evita conflito entre games e wallets no E2E
+- `services/games/tsconfig.json` com paths dos pacotes workspace para resolução TypeScript no monorepo
+
 ### Fixed — `fix/messaging-handler-types` (2026-06-12)
 
 - Registro do consumer `bet.debit_requested` tipado com `BetDebitRequestedPayload`, eliminando incompatibilidade `unknown` no bootstrap de mensageria
